@@ -51,7 +51,7 @@ const router = express.Router();
  *               message: Something went very wrong!
  */
 
-router.post('/signup', authController.signup);
+router.post('/register', authController.signup);
 
 /**
  * @swagger
@@ -90,7 +90,7 @@ router.post('/signup', authController.signup);
  */
 
 router.post(
-  '/signin',
+  '/login',
   passport.authenticate('local', { session: false }),
   authController.signin
 );
