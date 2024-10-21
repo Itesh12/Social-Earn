@@ -1,105 +1,39 @@
+// Import the Express framework for building the web application
 const express = require('express');
-const mongoose = require('mongoose');
-const logger = require('./utils/logger');
-const dotenv = require('dotenv');
-const passport = require('passport');
-const cors = require('cors');
-const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
-const hpp = require('hpp');
-const helmet = require('helmet');
-const compression = require('compression');
-const userRouter = require('./src/routes/userRoutes');
-const communityRouter = require('./src/routes/communityRoutes');
-const commentRouter = require('./src/routes/commentsRoutes');
-const postRouter = require('./src/routes/postRoutes');
-const globalErrorHandler = require('./src/controllers/errorController');
 
-require('express-async-errors');
+// Import the body-parser middleware to parse incoming request bodies
+const bodyParser = require('body-parser');
 
+// Import route modules for authentication and user management
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+
+// Import error handler
+const errorHandler = require('./middlewares/errorHandler');
+
+// Load environment variables from a .env file into process.env
+require('dotenv').config();
+
+// Create an instance of the Express application
 const app = express();
 
-dotenv.config();
+// Middleware to parse JSON requests
+app.use(bodyParser.json());
 
-// Side effect import
-require('./src/controllers/passportController');
+// Define application routes
 
-// Global Middlewares
-app.use(passport.initialize());
+// Use the authentication routes for any requests to /api/v1/auth
+app.use('/api/v1/auth', authRoutes);
 
-// Implement Cors
-app.use(cors());
-app.options('*', cors());
+// Use the user management routes for any requests to /api/v1/users
+app.use('/api/v1/users', userRoutes);
 
-// Set security HTTP headers
-app.use(helmet());
+// Centralized error handling middleware
+app.use(errorHandler);
 
-// Limit requests from same API
-const limiter = rateLimit({
-  max: 100,
-  windowMs: 60 * 60 * 1000,
-  message: 'Too many requests from this IP, please try again in an hour!',
-});
-
-app.use('/', limiter);
-
-// Body parser, reading data from body into req.body
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
-// Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
-
-// Data sanitization against XSS
-app.use(xss());
-
-// Prevent parameter pollution
-app.use(
-  hpp({
-    whitelist: ['sort'],
-  })
-);
-
-app.use(compression());
-
-app.use(globalErrorHandler);
-
-mongoose
-  .connect(process.env.MONGO_URL)
-  .then(() => {
-    logger.info('MongoDB connection successful!');
-  })
-  .catch((err) => {
-    logger.error('MongoDB connection failed!', err);
-    process.exit(1); // Optionally, shut down the app if the DB connection fails
-  });
-
-app.get('/', (req, res) => res.send('Hello World!'));
-app.use('/api/v1/users', userRouter);
-app.use('/api/v1/posts', postRouter);
-app.use('/api/v1/communities', communityRouter);
-app.use('/api/v1/comments', commentRouter);
-
-const port = process.env.PORT ?? 5000;
-
-const server = app.listen(port, () => {
-  logger.info(`App running on port ${port}...`);
-});
-
-process.on('unhandledRejection', (err) => {
-  logger.error('UNHANDLED REJECTION! 💥 Shutting down...');
-  logger.error(err);
-  server.close(() => {
-    process.exit(1);
-  });
-});
-
-// quit on ctrl-c when running docker in terminal
-process.on('SIGINT', function onSigint() {
-  logger.info('👋 SIGINT RECEIVED. Shutting down gracefully');
-  server.close(() => {
-    logger.info('💥 Process terminated!');
-    process.exit(0);
-  });
+// Start the server and listen for incoming requests
+const PORT = process.env.PORT || 3000; // Use the port from environment variables or default to 3000
+app.listen(PORT, () => {
+  // Log a message to the console when the server is successfully running
+  console.log(`Server is running on port ${PORT}`);
 });

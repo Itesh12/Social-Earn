@@ -94,6 +94,39 @@ class ApiResponse<T> {
     return ApiResponse.error(message: errorMessage, statusCode: statusCode);
   }
 
+  // New method for parsing a list of items from JSON
+  factory ApiResponse.fromListJson(
+    Map<String, dynamic> json,
+    T Function(dynamic) fromJsonT, {
+    int? statusCode,
+  }) {
+    try {
+      if (!json.containsKey('data') || json['data'] == null) {
+        throw Exception('Missing data field in response');
+      }
+
+      // Expecting `data` to be a list of items
+      List<T> dataList = List<T>.from(
+        (json['data'] as List).map((item) => fromJsonT(item)),
+      );
+
+      return ApiResponse.success(
+        dataList
+            as T, // Casting List<T> as T, should be handled properly in your use cases
+        message: json['message'] ?? "Success",
+        statusCode: json['statusCode'] ?? statusCode,
+        token: json['token'] ?? "", // Token field from JSON
+      );
+    } catch (e, stackTrace) {
+      print('Error: $e');
+      print('StackTrace: $stackTrace');
+      return ApiResponse.error(
+        message: 'Data parsing error: ${e.toString()}',
+        statusCode: 500,
+      );
+    }
+  }
+
   bool isSuccess() => status == Status.success;
 
   bool isLoading() => status == Status.loading;

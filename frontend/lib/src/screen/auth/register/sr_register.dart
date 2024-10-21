@@ -2,120 +2,84 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:socialearn/src/screen/auth/login/sr_login.dart';
 import 'package:socialearn/src/screen/auth/register/ctrl_register.dart';
+import 'package:socialearn/src/widgets/custom_elevated_button.dart';
+import 'package:socialearn/src/widgets/custom_text_button.dart';
+import 'package:socialearn/src/widgets/custom_textfiled.dart';
 
 class RegisterScreen extends StatelessWidget {
-  final RegisterController c = Get.put(RegisterController());
+  final RegisterController registerController = Get.put(RegisterController());
+
   RegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Register'),
+        title: const Text('Register'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        child: Column(
-          children: [
-            FlutterLogo(
-              size: 150.0,
-            ),
-            SizedBox(height: 20),
-            TextFormField(
-              controller: c.usernameTextController,
-              keyboardType: TextInputType.name,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                label: Text('Username'),
+        child: Obx(() {
+          return Column(
+            children: [
+              const FlutterLogo(
+                size: 150.0,
+              ),
+              const SizedBox(height: 20),
+              CustomTextField(
+                textEditingController:
+                    registerController.usernameTextController,
+                textInputType: TextInputType.name,
+                textInputAction: TextInputAction.next,
                 hintText: 'John Doe',
-                border: OutlineInputBorder(),
+                labelText: 'Username',
               ),
-            ),
-            SizedBox(height: 20),
-            CustomTextField(
-              hintText: 'johndoe@gmail.com',
-              labelText: 'Email',
-              textInputType: TextInputType.emailAddress,
-              textEditingController: c.emailTextController,
-            ),
-            SizedBox(height: 20),
-            TextFormField(
-              controller: c.passwordTextController,
-              keyboardType: TextInputType.visiblePassword,
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(
-                label: Text('Password'),
+              const SizedBox(height: 20),
+              CustomTextField(
+                hintText: 'johndoe@gmail.com',
+                labelText: 'Email',
+                textInputType: TextInputType.emailAddress,
+                textEditingController: registerController.emailTextController,
+              ),
+              const SizedBox(height: 20),
+              CustomTextField(
+                textEditingController:
+                    registerController.passwordTextController,
+                textInputType: TextInputType.visiblePassword,
+                textInputAction: TextInputAction.done,
+                labelText: 'Password',
                 hintText: '******',
+                obscure: registerController.isObscureText.value,
                 suffixIcon: IconButton(
-                  onPressed: () {},
-                  icon: Icon(Icons.visibility_outlined),
+                  onPressed: () {
+                    registerController.toggleObscureText();
+                  },
+                  icon: Icon(!registerController.isObscureText.value
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined),
                 ),
-                border: OutlineInputBorder(),
               ),
-            ),
-            SizedBox(height: 20),
-            SizedBox(
-              height: 50,
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  await c.registerUser();
+              const SizedBox(height: 20),
+              registerController.isLoading.value
+                  ? const CircularProgressIndicator() // Show loading indicator when loading
+                  : CustomElevatedButton(
+                      buttonText: 'Register',
+                      onPressed: () async {
+                        await registerController.registerUser();
+                      },
+                    ),
+              const SizedBox(height: 20),
+              CustomTextButton(
+                buttonText: 'Already have an account?\nPlease login here',
+                onPressed: () {
+                  Get.to(() => LoginScreen());
                 },
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: Text('Register'),
-              ),
-            ),
-            SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                Get.to(() => LoginScreen());
-              },
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: Text('Already have an account? Please login here'),
-            )
-          ],
-        ).paddingSymmetric(horizontal: 20, vertical: 20),
-      ),
-    );
-  }
-}
-
-class CustomTextField extends StatelessWidget {
-  final String hintText;
-  final String labelText;
-  final TextInputType? textInputType;
-  final TextEditingController? textEditingController;
-  final bool obscure;
-  const CustomTextField({
-    super.key,
-    this.hintText = '',
-    this.labelText = '',
-    this.textInputType,
-    this.textEditingController,
-    this.obscure = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: textEditingController,
-      keyboardType: textInputType,
-      textInputAction: TextInputAction.next,
-      obscureText: obscure,
-      decoration: InputDecoration(
-        label: Text(labelText ?? ''),
-        hintText: hintText ?? '',
-        border: OutlineInputBorder(),
+              )
+            ],
+          );
+        }).paddingSymmetric(horizontal: 20, vertical: 20),
       ),
     );
   }

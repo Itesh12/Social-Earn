@@ -1,94 +1,78 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:socialearn/src/screen/auth/login/ctrl_login.dart';
 import 'package:socialearn/src/screen/auth/register/sr_register.dart';
 import 'package:socialearn/src/screen/home/sr_home.dart';
+import 'package:socialearn/src/widgets/custom_elevated_button.dart';
+import 'package:socialearn/src/widgets/custom_text_button.dart';
+import 'package:socialearn/src/widgets/custom_textfiled.dart';
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+  final LoginController loginController = Get.put(LoginController());
+  LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'),
+        title: const Text('Login'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         child: Column(
           children: [
-            FlutterLogo(
+            const FlutterLogo(
               size: 150.0,
             ),
-            SizedBox(height: 20),
-            TextFormField(
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                label: Text('Email'),
-                hintText: 'johndoe@gmail.com',
-                border: OutlineInputBorder(),
-              ),
+            const SizedBox(height: 20),
+            CustomTextField(
+              textEditingController: loginController.emailTextController,
+              textInputType: TextInputType.name,
+              hintText: 'johndoe@gmail.com',
+              labelText: 'Email',
             ),
-            SizedBox(height: 20),
-            TextFormField(
-              keyboardType: TextInputType.visiblePassword,
+            const SizedBox(height: 20),
+            CustomTextField(
+              textEditingController: loginController.passwordTextController,
+              textInputType: TextInputType.visiblePassword,
               textInputAction: TextInputAction.done,
-              decoration: InputDecoration(
-                label: Text('Password'),
-                hintText: '******',
-                suffixIcon: IconButton(
-                  onPressed: () {},
-                  icon: Icon(Icons.visibility_outlined),
-                ),
-                border: OutlineInputBorder(),
+              hintText: '******',
+              labelText: 'Password',
+              obscure: loginController.isObscureText.value,
+              suffixIcon: IconButton(
+                onPressed: () {
+                  loginController.toggleObscureText();
+                },
+                icon: Icon(!loginController.isObscureText.value
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined),
               ),
             ),
-            SizedBox(height: 5),
+            const SizedBox(height: 5),
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  Get.to(() => LoginScreen());
-                },
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: Text("Forgot Password?"),
+              child: CustomTextButton(
+                onPressed: () {},
+                buttonText: "Forgot Password?",
               ),
             ),
-            SizedBox(height: 5),
-            SizedBox(
-              height: 50,
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Get.to(() => HomeScreen());
-                },
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: Text('Login'),
-              ),
+            const SizedBox(height: 5),
+            CustomElevatedButton(
+              buttonText: 'Login',
+              onPressed: () async {
+                await loginController.loginUser();
+              },
             ),
-            SizedBox(height: 20),
-            TextButton(
+            const SizedBox(height: 20),
+            CustomTextButton(
+              buttonText: "Don't have an account?\nPlease register here",
               onPressed: () {
                 Get.offAll(() => RegisterScreen());
               },
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: Text("Don't have an account? Please register here"),
-            )
+            ),
           ],
         ).paddingSymmetric(horizontal: 20, vertical: 20),
       ),

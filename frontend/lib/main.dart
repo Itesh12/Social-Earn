@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:socialearn/src/core/routes/pages.dart';
+import 'package:socialearn/src/core/routes/routes.dart';
 import 'package:socialearn/src/screen/auth/register/sr_register.dart';
+import 'package:socialearn/src/screen/splash/sr_splash.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await GetStorage.init();
   runApp(const MyApp());
 }
 
@@ -14,7 +20,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Flutter Demo',
-      home: RegisterScreen(),
+      home: SplashScreen(),
+      initialRoute: Routes.INIT,
+      getPages: Pages.pageList,
     );
   }
 }
