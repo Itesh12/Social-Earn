@@ -107,8 +107,6 @@ exports.updateUser = (req, res, next) => {
   if (interests !== undefined)
     updatedData.interests = JSON.stringify(interests);
 
-  console.log('Updating user:', updatedData); // Debugging line to check the data
-
   // Update the user's data, excluding token
   User.update(userId, updatedData, (err) => {
     if (err) return next(err);

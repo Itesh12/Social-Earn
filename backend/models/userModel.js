@@ -46,8 +46,12 @@ const User = {
 
   // Find a user by their unique ID
   findById: (id, callback) => {
-    const sql = `SELECT * FROM users WHERE id = ?`;
-    db.query(sql, [id], callback);
+    const sql = `SELECT * FROM users WHERE id = ? LIMIT 1`; // Add LIMIT 1 to ensure a single result
+    db.query(sql, [id], (err, results) => {
+      if (err) return callback(err);
+      // Assuming you always expect a single user object, return the first element
+      callback(null, results[0]);
+    });
   },
 
   // Retrieve all users from the database
