@@ -6,7 +6,7 @@ class ApiResponse<T> {
   Status status;
   T? data;
   String? message;
-  String token;
+  String token; // Add token
   String stackTrace;
   String url;
   Map<String, dynamic> queryParam;
@@ -22,9 +22,11 @@ class ApiResponse<T> {
         queryParam = const {};
 
   // Constructor for success state
-  ApiResponse.success(this.data, {this.message, this.statusCode})
+  ApiResponse.success(this.data,
+      {this.message,
+      this.statusCode,
+      required this.token}) // Updated constructor
       : status = Status.success,
-        token = "",
         stackTrace = "",
         url = "",
         queryParam = const {};
@@ -52,6 +54,7 @@ class ApiResponse<T> {
         fromJsonT(json['data']),
         message: json['message'] ?? "Success",
         statusCode: json['statusCode'] ?? statusCode,
+        token: json['token'] ?? "", // Token field from JSON
       );
     } catch (e, stackTrace) {
       print('Error: $e');
@@ -82,7 +85,8 @@ class ApiResponse<T> {
 
   // Static method for empty response
   static ApiResponse<T> fromEmptyJson<T>() {
-    return ApiResponse.success(null, message: 'Success with no content');
+    return ApiResponse.success(null,
+        message: 'Success with no content', token: "");
   }
 
   // Static method for error response
@@ -98,6 +102,6 @@ class ApiResponse<T> {
 
   @override
   String toString() {
-    return 'ApiResponse{status: $status, message: $message, data: $data, statusCode: $statusCode}';
+    return 'ApiResponse{status: $status, message: $message, data: $data, token: $token, statusCode: $statusCode}'; // Updated toString
   }
 }

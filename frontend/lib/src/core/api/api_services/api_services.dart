@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:socialearn/src/core/api_response/api_response.dart';
+import 'package:socialearn/src/core/pref_service/pref_service.dart';
 import 'package:socialearn/src/core/utils/logger.dart';
 
 import '../routes/api_routes.dart';
@@ -18,22 +19,26 @@ class Api {
 
   /// Set the header, including token and additional headers if needed.
   setHeader({
-    required String token,
     Map<String, String>? headers,
+    bool includeToken = true, // New parameter
   }) {
-    this.token = token;
+    // Retrieve token directly from the preference service
+    token = PrefService.instance.getToken() ??
+        ''; // Assuming you have a method to get the token
+
     if (kIsWeb) {
       _dio.options.headers.clear();
-      _dio.options.queryParameters.addAll({
-        'token': this.token,
-        ...?headers,
-      });
+      if (includeToken && token.isNotEmpty) {
+        _dio.options.queryParameters['token'] = token;
+      }
+      _dio.options.queryParameters.addAll(headers ?? {});
       logger.i('${_dio.options.queryParameters}');
     } else {
-      _dio.options.headers.addAll({
-        'Authorization': 'Bearer $token', // Changed to Bearer token
-        ...?headers,
-      });
+      if (includeToken && token.isNotEmpty) {
+        _dio.options.headers['Authorization'] =
+            'Bearer $token'; // Include Bearer token if true
+      }
+      _dio.options.headers.addAll(headers ?? {});
     }
   }
 
@@ -58,28 +63,28 @@ class Api {
     required String path,
     Map<String, dynamic>? data,
     Map<String, dynamic>? queryParameters,
-    Map<String, dynamic>? headers,
+    Map<String, String>? headers,
     required ApiResponse<T> Function(Response) createApiRes,
     bool isFormData = false, // Option to send FormData
+    bool includeToken = true, // New parameter for token inclusion
   }) async {
     try {
-      Map<String, dynamic> h = {..._dio.options.headers, ...?headers};
+      setHeader(headers: headers, includeToken: includeToken); // Set headers
       DateTime time1 = DateTime.now();
       Response response = await _dio.post(
         path,
         queryParameters: queryParameters,
-        options: Options(headers: h),
         data: isFormData ? FormData.fromMap(data ?? {}) : data,
       );
       DateTime time2 = DateTime.now();
       logger.i(time2.difference(time1)); // Logging time taken for request
       ApiResponse<T> apiResponse = createApiRes(response);
-      logger.f("Header: $h");
+      logger.f("Header: ${_dio.options.headers}");
       logger.f("Query Params: ${_dio.options.queryParameters}");
       return apiResponse;
     } catch (e, t) {
-      log('$e');
-      log('$t');
+      logger.e('$e');
+      logger.t('$t');
       return ApiResponse.fromError(e.toString());
     }
   }
@@ -88,14 +93,15 @@ class Api {
   Future<ApiResponse<T>> get<T>({
     required String path,
     Map<String, dynamic>? queryParameters,
-    Map<String, dynamic>? headers,
+    Map<String, String>? headers,
     required ApiResponse<T> Function(Response) createApiRes,
+    bool includeToken = true, // New parameter for token inclusion
   }) async {
     try {
+      setHeader(headers: headers, includeToken: includeToken); // Set headers
       Response response = await _dio.get(
         path,
         queryParameters: queryParameters,
-        options: Options(headers: {..._dio.options.headers, ...?headers}),
       );
       ApiResponse<T> apiResponse = createApiRes(response);
       return apiResponse;

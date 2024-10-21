@@ -1,6 +1,6 @@
 class ApiRoutes {
   ///BASE_URL
-  static String baseUrl = 'http://localhost:3000/api/v1/';
+  static String baseUrl = 'https://social-earn.onrender.com/api/v1/';
 
   static String register = '${baseUrl}users/register';
 
